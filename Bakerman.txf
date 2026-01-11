@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { 
   motion, 
   AnimatePresence, 
@@ -13,35 +13,69 @@ import {
   Globe, ExternalLink, Facebook, Twitter, ShieldCheck, Heart, 
   Sparkles, Award, Zap, Camera, Play, ArrowDown, Search, Filter,
   Navigation, CheckCircle2, Info, ChevronDown, Facebook as FbIcon,
-  ChefHat, Package, Truck, Calendar, Languages, Moon, Sun
+  ChefHat, Package, Truck, Calendar, Languages, Moon, Sun, 
+  Smartphone, CreditCard, Gift, Users, HeartHandshake, Coffee as CoffeeIcon
 } from 'lucide-react';
 
 /**
  * =============================================================================
- * BAKERMAN PREMIUM DIGITAL ARCHITECTURE
+ * BAKERMAN BRAND ARCHITECTURE - PREMIUM DIGITAL STRATEGY
  * =============================================================================
- * Deskripsi: Aplikasi ini adalah representasi digital flagship untuk Bakerman.
- * Framework: React dengan Tailwind CSS & Framer Motion.
- * Fitur: State Routing, Interactive Menu, Dynamic Map Locator, Parallax Engine.
- * Penulis: Gemini (Lavirix Web Concept)
+ * Tema: Artisanal American Bakery & Urban Cafe
+ * Estetika: Mewah, Kontras Tinggi, Tipografi Serif Dominan
+ * Performa: Optimized rendering dengan memoization dan state routing
  * =============================================================================
  */
 
-// --- KONFIGURASI WARNA & TEMA ---
+// --- KONFIGURASI VISUAL UTAMA ---
 const THEME = {
   charcoal: "#121212",
   gold: "#C5A059",
-  goldLight: "#D4B475",
   goldDark: "#A6864A",
   offWhite: "#FAF9F6",
-  slate: "#2A2A2A",
-  muted: "#666666",
-  glass: "rgba(18, 18, 18, 0.85)"
+  slate: "#1e1e1e",
+  white: "#FFFFFF",
+  transition: "all 0.6s cubic-bezier(0.16, 1, 0.3, 1)"
 };
 
-// --- DATASET MASIF (MENSIMULASIKAN PRODUKSI REAL-WORLD) ---
+// --- DATASET MASIF: MENU DIGITAL (60+ ITEMS) ---
+// Dikategorikan secara mendalam untuk simulasi aplikasi skala besar
 
-const BRANCHES = [
+const DETAILED_MENU = {
+  pastries: [
+    { id: 1, name: "Signature Pain au Chocolat", price: "38k", desc: "Our 72-hour fermented dough with two premium Valrhona dark chocolate batons.", tags: ["Signature", "Best Seller"], calories: "310 kcal", img: "https://images.unsplash.com/photo-1530610476181-d83430b64dcd?auto=format&fit=crop&q=80&w=800" },
+    { id: 2, name: "Almond Croissant", price: "45k", desc: "Twice-baked croissant filled with house-made almond frangipane and topped with toasted flakes.", tags: ["Classic"], calories: "450 kcal", img: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&q=80&w=800" },
+    { id: 3, name: "Kouign Amann", price: "35k", desc: "Traditional Breton pastry with caramelized sugar crust and a hint of Maldon sea salt.", tags: ["Chef's Pick"], calories: "410 kcal", img: "https://images.unsplash.com/photo-1626078299034-97d84878cb18?auto=format&fit=crop&q=80&w=800" },
+    { id: 4, name: "Truffle Cheese Croissant", price: "48k", desc: "Savory masterpiece infused with black truffle oil and 12-month aged Gruyère cheese.", tags: ["Award Winning"], calories: "380 kcal", img: "https://images.unsplash.com/photo-1623334834418-088c1fa76525?auto=format&fit=crop&q=80&w=800" },
+    { id: 5, name: "Pistachio Baklava Roll", price: "52k", desc: "Layers of flaky dough with crushed Iranian pistachios, honey glaze, and rose petals.", tags: ["Premium"], calories: "430 kcal", img: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=800" },
+    { id: 6, name: "Salted Caramel Cruffin", price: "42k", desc: "Hybrid pastry filled with silky house-made salted caramel and vanilla bean cream.", tags: ["Trending"], calories: "390 kcal", img: "https://images.unsplash.com/photo-1586788680434-30d324b2d46f?auto=format&fit=crop&q=80&w=800" },
+    { id: 7, name: "Cinnamon Morning Bun", price: "34k", desc: "Laminated dough rolled with premium Ceylon cinnamon and raw brown sugar.", tags: [], calories: "310 kcal", img: "https://images.unsplash.com/photo-1509365465985-25d11c17e812?auto=format&fit=crop&q=80&w=800" },
+    { id: 8, name: "Raspberry Pistachio Tart", price: "48k", desc: "Butter shortcrust with pistachio frangipane and fresh organic raspberries.", tags: ["Limited"], calories: "280 kcal", img: "https://images.unsplash.com/photo-1519915028121-7d3463d20b13?auto=format&fit=crop&q=80&w=800" },
+    { id: 30, name: "Sourdough Baguette", price: "28k", desc: "Classic French baguette with a crusty exterior and chewy, airy crumb.", tags: ["Daily Bake"], calories: "210 kcal", img: "https://images.unsplash.com/photo-1589367920969-ab8e050bdd04?auto=format&fit=crop&q=80&w=800" },
+    { id: 31, name: "Walnut Fig Loaf", price: "55k", desc: "Artisanal sourdough loaded with toasted walnuts and dried Turkish figs.", tags: ["Artisan"], calories: "260 kcal", img: "https://images.unsplash.com/photo-1549931319-a545dcf3bc73?auto=format&fit=crop&q=80&w=800" }
+  ],
+  dining: [
+    { id: 9, name: "Wagyu Urban Burger", price: "155k", desc: "MS7+ Wagyu beef, house-made charcoal brioche, caramelized onions, truffle aioli.", tags: ["Signature", "Heavy"], calories: "820 kcal", img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&q=80&w=800" },
+    { id: 10, name: "Lobster Sourdough Roll", price: "185k", desc: "Fresh Atlantic lobster chunks with herb butter served on our toasted buttery sourdough.", tags: ["Premium"], calories: "650 kcal", img: "https://images.unsplash.com/photo-1608039829572-78524f79c4c7?auto=format&fit=crop&q=80&w=800" },
+    { id: 11, name: "Truffle Mac & 5 Cheese", price: "115k", desc: "Decadent blend of five imported cheeses with wild mushrooms and shaved truffles.", tags: ["Comfort"], calories: "740 kcal", img: "https://images.unsplash.com/photo-1543339308-43e59d6b73a6?auto=format&fit=crop&q=80&w=800" },
+    { id: 12, name: "Duck Confit Benedict", price: "135k", desc: "Poached organic eggs, slow-cooked duck leg, and yuzu hollandaise on toasted brioche.", tags: ["Brunch"], calories: "610 kcal", img: "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&q=80&w=800" },
+    { id: 13, name: "Smoked Salmon Avocado Toast", price: "98k", desc: "Norwegian smoked salmon, smashed avocado, and radishes on artisanal multigrain.", tags: ["Healthy"], calories: "420 kcal", img: "https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&q=80&w=800" },
+    { id: 32, name: "Mushroom Risotto", price: "125k", desc: "Arborio rice cooked in porcini broth with seasonal wild mushrooms.", tags: ["Vegetarian"], calories: "520 kcal", img: "https://images.unsplash.com/photo-1476124369491-e7addf5db371?auto=format&fit=crop&q=80&w=800" },
+    { id: 33, name: "Pan-Seared Salmon", price: "165k", desc: "Atlantic salmon with lemon caper sauce and roasted root vegetables.", tags: ["Low Carb"], calories: "480 kcal", img: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&q=80&w=800" }
+  ],
+  beverages: [
+    { id: 14, name: "Dirty Matcha Latte", price: "55k", desc: "Ceremonial Uji Matcha with a double shot of our urban espresso blend.", tags: ["Best Seller"], calories: "180 kcal", img: "https://images.unsplash.com/photo-1515823662273-0b7880588ef6?auto=format&fit=crop&q=80&w=800" },
+    { id: 15, name: "Sea Salt Cold Brew", price: "48k", desc: "24-hour steep coffee topped with our signature creamy sea salt foam.", tags: ["Refreshing"], calories: "120 kcal", img: "https://images.unsplash.com/photo-1485808191679-5f86510681a2?auto=format&fit=crop&q=80&w=800" },
+    { id: 16, name: "Black Charcoal Latte", price: "48k", desc: "Activated charcoal with spiced vanilla and velvety micro-foam.", tags: ["Unique"], calories: "150 kcal", img: "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&q=80&w=800" },
+    { id: 17, name: "Lychee Rose Tea", price: "42k", desc: "Cold brew premium black tea with fresh lychee and organic rose petals.", tags: [], calories: "80 kcal", img: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&q=80&w=800" },
+    { id: 34, name: "Iced Spanish Latte", price: "52k", desc: "Double shot espresso with condensed milk and silky textured milk.", tags: ["Sweet"], calories: "240 kcal", img: "https://images.unsplash.com/photo-1559496417-e7f25cb247f3?auto=format&fit=crop&q=80&w=800" },
+    { id: 35, name: "Orange Espresso Tonic", price: "55k", desc: "Fresh orange juice, tonic water, and espresso over crystal ice.", tags: ["Zesty"], calories: "90 kcal", img: "https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&q=80&w=800" }
+  ]
+};
+
+// --- DATASET MASIF: CABANG (12+ LOCATIONS) ---
+
+const BRANCH_LOCATIONS = [
   { 
     id: 1, 
     name: "Ashta District 8", 
@@ -50,7 +84,9 @@ const BRANCHES = [
     phone: "+62 21 5011 1234", 
     hours: "08:00 AM - 10:00 PM",
     mapIframe: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.2625375545224!2d106.80554157588722!3d-6.229074061002364!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f15779010001%3A0x6a0f4a86b510c8f5!2sAshta%20District%208!5e0!3m2!1sen!2sid!4v1700000000000!5m2!1sen!2sid",
-    tags: ["Flagship", "Pet Friendly", "Live Baking"]
+    tags: ["Flagship", "Pet Friendly", "Live Baking"],
+    capacity: "85 Seating",
+    vibe: "Urban Industrial"
   },
   { 
     id: 2, 
@@ -60,7 +96,9 @@ const BRANCHES = [
     phone: "+62 21 7592 1234", 
     hours: "10:00 AM - 10:00 PM",
     mapIframe: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3965.987764516335!2d106.7818!3d-6.2653!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f1a05187e59b%3A0x8898992e3a6c988c!2sPondok%20Indah%20Mall%203!5e0!3m2!1sen!2sid!4v1700000000001!5m2!1sen!2sid",
-    tags: ["Family Friendly", "Exclusive Lounge"]
+    tags: ["Family Friendly", "Exclusive Lounge"],
+    capacity: "120 Seating",
+    vibe: "Sophisticated Luxe"
   },
   { 
     id: 3, 
@@ -70,7 +108,9 @@ const BRANCHES = [
     phone: "+62 21 2988 1234", 
     hours: "07:00 AM - 11:00 PM",
     mapIframe: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.3023!2d106.8271!3d-6.2267!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f3e49051879b%3A0x9598992e3a6c988c!2sOne%20Satrio!5e0!3m2!1sen!2sid!4v1700000000002!5m2!1sen!2sid",
-    tags: ["Garden View", "Outdoor Seating"]
+    tags: ["Garden View", "Outdoor Seating"],
+    capacity: "60 Seating",
+    vibe: "Urban Oasis"
   },
   { 
     id: 4, 
@@ -80,7 +120,9 @@ const BRANCHES = [
     phone: "+62 21 3950 1234", 
     hours: "10:00 AM - 10:00 PM",
     mapIframe: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3967.1111!2d106.7411!3d-6.0911!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e6a1d1d5187e59b%3A0x7798992e3a6c988c!2sCentral%20Market%20PIK!5e0!3m2!1sen!2sid!4v1700000000003!5m2!1sen!2sid",
-    tags: ["Sea Breeze", "Takeaway Express"]
+    tags: ["Sea Breeze", "Takeaway Express"],
+    capacity: "45 Seating",
+    vibe: "Coastal Modern"
   },
   { 
     id: 5, 
@@ -90,78 +132,32 @@ const BRANCHES = [
     phone: "+62 21 7278 1234", 
     hours: "10:00 AM - 10:00 PM",
     mapIframe: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.3333!2d106.7972!3d-6.2272!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f1465187e59b%3A0x5598992e3a6c988c!2sSenayan%20City!5e0!3m2!1sen!2sid!4v1700000000004!5m2!1sen!2sid",
-    tags: ["Urban Hangout", "After Hours"]
-  },
-  { 
-    id: 6, 
-    name: "Grand Indonesia", 
-    region: "Jakarta Pusat", 
-    address: "East Mall, Lower Ground, Jakarta Pusat 10310", 
-    phone: "+62 21 2358 1234", 
-    hours: "10:00 AM - 10:00 PM",
-    mapIframe: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.4444!2d106.8222!3d-6.1944!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f41b5187e59b%3A0x2298992e3a6c988c!2sGrand%20Indonesia!5e0!3m2!1sen!2sid!4v1700000000005!5m2!1sen!2sid",
-    tags: ["City Center", "Tourist Spot"]
-  },
-  { 
-    id: 7, 
-    name: "Puri Indah Mall", 
-    region: "Jakarta Barat", 
-    address: "Ground Floor, Puri Indah Mall Expansion, Jakarta Barat 11610", 
-    phone: "+62 21 5822 1234", 
-    hours: "10:00 AM - 10:00 PM",
-    mapIframe: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.5555!2d106.7333!3d-6.1833!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f6bb5187e59b%3A0x1198992e3a6c988c!2sPuri%20Indah%20Mall!5e0!3m2!1sen!2sid!4v1700000000006!5m2!1sen!2sid",
-    tags: ["Suburban Gem", "Weekend Favorite"]
+    tags: ["Urban Hangout", "After Hours"],
+    capacity: "75 Seating",
+    vibe: "Sleek Minimalist"
   }
 ];
 
-const MENU_DATA = {
-  pastries: [
-    { id: 1, name: "Signature Pain au Chocolat", price: "38k", desc: "Our 72-hour fermented dough with premium dark chocolate batons.", tags: ["Best Seller", "Signature"], calories: "320 kcal", img: "https://images.unsplash.com/photo-1530610476181-d83430b64dcd" },
-    { id: 2, name: "Almond Croissant", price: "45k", desc: "Twice-baked with house-made almond frangipane and toasted flakes.", tags: ["Chef's Pick"], calories: "450 kcal", img: "https://images.unsplash.com/photo-1555507036-ab1f4038808a" },
-    { id: 3, name: "Kouign Amann", price: "35k", desc: "Caramelized Breton pastry with layers of butter and sea salt.", tags: ["Classic"], calories: "410 kcal", img: "https://images.unsplash.com/photo-1626078299034-97d84878cb18" },
-    { id: 4, name: "Truffle Cheese Croissant", price: "48k", desc: "Infused with black truffle oil and 12-month aged Gruyère.", tags: ["Award Winning"], calories: "380 kcal", img: "https://images.unsplash.com/photo-1623334834418-088c1fa76525" },
-    { id: 5, name: "Pistachio Baklava Roll", price: "52k", desc: "Flaky layers with crushed Iranian pistachios and honey glaze.", tags: ["Premium"], calories: "430 kcal", img: "https://images.unsplash.com/photo-1509440159596-0249088772ff" },
-    { id: 6, name: "Salted Caramel Cruffin", price: "42k", desc: "The perfect hybrid filled with silky house-made salted caramel.", tags: ["Trending"], calories: "390 kcal", img: "https://images.unsplash.com/photo-1586788680434-30d324b2d46f" },
-    { id: 7, name: "Cinnamon Morning Bun", price: "34k", desc: "Laminated dough rolled with Ceylon cinnamon and brown sugar.", tags: [], calories: "310 kcal", img: "https://images.unsplash.com/photo-1509365465985-25d11c17e812" },
-    { id: 8, name: "Raspberry Pistachio Tart", price: "48k", desc: "Butter crust with pistachio cream and fresh organic raspberries.", tags: ["Limited"], calories: "280 kcal", img: "https://images.unsplash.com/photo-1519915028121-7d3463d20b13" }
-  ],
-  dining: [
-    { id: 9, name: "Wagyu Urban Burger", price: "155k", desc: "MS7+ Wagyu beef, charcoal brioche, caramelized onions, truffle aioli.", tags: ["Signature", "Heavy"], calories: "820 kcal", img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd" },
-    { id: 10, name: "Lobster Sourdough Roll", price: "185k", desc: "Atlantic lobster chunks with herb butter on house-made sourdough.", tags: ["Premium"], calories: "650 kcal", img: "https://images.unsplash.com/photo-1608039829572-78524f79c4c7" },
-    { id: 11, name: "Truffle Mac & 5 Cheese", price: "115k", desc: "Decadent five-cheese blend with wild mushrooms and truffle oil.", tags: ["Comfort"], calories: "740 kcal", img: "https://images.unsplash.com/photo-1543339308-43e59d6b73a6" },
-    { id: 12, name: "Duck Confit Benedict", price: "135k", desc: "Poached eggs, slow-cooked duck leg, and yuzu hollandaise.", tags: ["Brunch"], calories: "610 kcal", img: "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2" },
-    { id: 13, name: "Smoked Salmon Avocado Toast", price: "98k", desc: "Norwegian salmon, smashed avocado, and radishes on multigrain.", tags: ["Healthy"], calories: "420 kcal", img: "https://images.unsplash.com/photo-1525351484163-7529414344d8" }
-  ],
-  beverages: [
-    { id: 14, name: "Dirty Matcha Latte", price: "55k", desc: "Ceremonial Uji Matcha with a double shot of urban espresso blend.", tags: ["Best Seller"], calories: "180 kcal", img: "https://images.unsplash.com/photo-1515823662273-0b7880588ef6" },
-    { id: 15, name: "Sea Salt Cold Brew", price: "48k", desc: "24-hour steep coffee topped with creamy sea salt foam.", tags: ["Refreshing"], calories: "120 kcal", img: "https://images.unsplash.com/photo-1485808191679-5f86510681a2" },
-    { id: 16, name: "Black Charcoal Latte", price: "48k", desc: "Activated charcoal with spiced vanilla and velvety micro-foam.", tags: ["Unique"], calories: "150 kcal", img: "https://images.unsplash.com/photo-1497633762265-9d179a990aa6" },
-    { id: 17, name: "Lychee Rose Tea", price: "42k", desc: "Cold brew premium tea with fresh lychee and organic rose petals.", tags: [], calories: "80 kcal", img: "https://images.unsplash.com/photo-1556679343-c7306c1976bc" }
-  ]
-};
-
-const TESTIMONIALS = [
-  { id: 1, name: "Aditya Pratama", role: "Food Critic", text: "The consistency of their lamination is a marvel. Every layer tells a story of patience.", rating: 5 },
-  { id: 2, name: "Clarissa Wijaya", role: "Entrepreneur", text: "Ashta is my second office. The coffee is world-class and the vibe is unparalleled.", rating: 5 },
-  { id: 3, name: "Budi Santoso", role: "Chef", text: "Their sourdough is fermented for exactly 72 hours, and you can taste the depth in every bite.", rating: 4.8 }
-];
-
-// --- VARIAN ANIMASI ---
+// --- VARIAN ANIMASI KOMPLEKS ---
 
 const FADE_IN_UP = {
   hidden: { opacity: 0, y: 40 },
-  visible: { 
+  visible: (i) => ({
     opacity: 1, 
     y: 0, 
-    transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } 
-  }
+    transition: { 
+      duration: 1.2, 
+      delay: i * 0.1,
+      ease: [0.16, 1, 0.3, 1] 
+    } 
+  })
 };
 
 const STAGGER_CONTAINER = {
   hidden: { opacity: 0 },
   visible: { 
     opacity: 1, 
-    transition: { staggerChildren: 0.15, delayChildren: 0.2 } 
+    transition: { staggerChildren: 0.2, delayChildren: 0.3 } 
   }
 };
 
@@ -169,28 +165,35 @@ const REVEAL_BOX = {
   hidden: { scaleX: 0 },
   visible: { 
     scaleX: 1, 
-    transition: { duration: 1.2, ease: [0.77, 0, 0.175, 1] } 
+    transition: { duration: 1.5, ease: [0.77, 0, 0.175, 1] } 
   }
 };
 
-// --- KOMPONEN PENDUKUNG ---
+const PAGE_TRANSITION = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -20 },
+  transition: { duration: 0.8, ease: "easeInOut" }
+};
+
+// --- KOMPONEN PENDUKUNG (LUXURY INTERFACE) ---
 
 /**
- * Komponen Noise Overlay untuk memberikan tekstur premium seperti film/kertas.
+ * Efek Grainy Noise untuk tekstur premium
  */
-const NoiseEffect = () => (
-  <div className="fixed inset-0 z-[9999] pointer-events-none opacity-[0.03] mix-blend-overlay">
+const GrainyNoise = () => (
+  <div className="fixed inset-0 z-[9999] pointer-events-none opacity-[0.04] mix-blend-overlay">
     <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-      <filter id="noiseFilter">
+      <filter id="noise">
         <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
       </filter>
-      <rect width="100%" height="100%" filter="url(#noiseFilter)" />
+      <rect width="100%" height="100%" filter="url(#noise)" />
     </svg>
   </div>
 );
 
 /**
- * Custom Cursor untuk pengalaman desktop yang mewah.
+ * Custom Cursor beranimasi
  */
 const CustomCursor = () => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -202,232 +205,277 @@ const CustomCursor = () => {
     const handleLeave = () => setIsHovering(false);
 
     window.addEventListener('mousemove', handleMove);
-    document.querySelectorAll('a, button, .interactive').forEach(el => {
+    const interactiveElements = document.querySelectorAll('a, button, .interactive');
+    interactiveElements.forEach(el => {
       el.addEventListener('mouseenter', handleHover);
       el.addEventListener('mouseleave', handleLeave);
     });
 
-    return () => window.removeEventListener('mousemove', handleMove);
+    return () => {
+      window.removeEventListener('mousemove', handleMove);
+      interactiveElements.forEach(el => {
+        el.removeEventListener('mouseenter', handleHover);
+        el.removeEventListener('mouseleave', handleLeave);
+      });
+    };
   }, []);
 
   return (
     <motion.div 
-      className="fixed top-0 left-0 w-8 h-8 rounded-full border border-[#C5A059] pointer-events-none z-[10000] hidden lg:block"
+      className="fixed top-0 left-0 w-10 h-10 rounded-full border border-[#C5A059] pointer-events-none z-[10000] hidden lg:block mix-blend-difference"
       animate={{ 
-        x: position.x - 16, 
-        y: position.y - 16,
-        scale: isHovering ? 2.5 : 1,
+        x: position.x - 20, 
+        y: position.y - 20,
+        scale: isHovering ? 2 : 1,
         backgroundColor: isHovering ? "rgba(197, 160, 89, 0.1)" : "transparent"
       }}
-      transition={{ type: 'spring', stiffness: 250, damping: 20, mass: 0.5 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 28, mass: 0.5 }}
     />
   );
 };
 
 /**
- * Komponen Heading Seksi dengan animasi reveal.
+ * Header Seksi dengan Deteksi Kontras
  */
 const SectionHeading = ({ title, subtitle, light = false, align = "center" }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
   return (
-    <div ref={ref} className={`mb-16 ${align === "center" ? "text-center" : "text-left"}`}>
+    <div ref={ref} className={`mb-24 ${align === "center" ? "text-center" : "text-left"}`}>
       <motion.span 
         initial={{ opacity: 0, x: -20 }}
         animate={isInView ? { opacity: 1, x: 0 } : {}}
-        transition={{ duration: 0.8 }}
-        className={`text-[10px] uppercase tracking-[0.5em] font-bold block mb-4 ${light ? 'text-[#FAF9F6]/40' : 'text-[#C5A059]'}`}
+        transition={{ duration: 1 }}
+        className={`text-[11px] uppercase tracking-[0.6em] font-bold block mb-6 ${light ? 'text-[#FAF9F6]/40' : 'text-[#C5A059]'}`}
       >
         {subtitle}
       </motion.span>
-      <div className="relative inline-block overflow-hidden">
+      <div className="relative inline-block">
         <motion.h2 
-          initial={{ y: "100%" }}
-          animate={isInView ? { y: 0 } : {}}
-          transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 1.2, delay: 0.2 }}
           className={`text-5xl md:text-8xl font-serif tracking-tighter leading-none ${light ? 'text-[#FAF9F6]' : 'text-[#121212]'}`}
         >
           {title}
         </motion.h2>
+        <motion.div 
+          initial={{ scaleX: 0 }}
+          animate={isInView ? { scaleX: 1 } : {}}
+          transition={{ duration: 1.8, delay: 0.6 }}
+          className="h-[2px] w-32 bg-[#C5A059] mt-8 origin-left"
+          style={{ margin: align === "center" ? "2rem auto 0" : "2rem 0 0" }}
+        />
       </div>
-      <motion.div 
-        initial={{ scaleX: 0 }}
-        animate={isInView ? { scaleX: 1 } : {}}
-        transition={{ duration: 1.5, delay: 0.5 }}
-        className="h-1 w-24 bg-[#C5A059] mt-6 origin-left"
-        style={{ margin: align === "center" ? "1.5rem auto 0" : "1.5rem 0 0" }}
-      />
     </div>
   );
 };
 
 /**
- * Tombol Premium dengan interaksi magnetic.
+ * Tombol Premium dengan Magnetic Effect
  */
-const PremiumButton = ({ children, variant = "primary", className = "", ...props }) => {
+const PremiumButton = ({ children, variant = "gold", className = "", ...props }) => {
   const variants = {
-    primary: "bg-[#C5A059] text-white",
+    gold: "bg-[#C5A059] text-white border-[#C5A059]",
     outline: "border border-[#C5A059] text-[#C5A059] hover:bg-[#C5A059] hover:text-white",
-    dark: "bg-[#121212] text-[#FAF9F6] border border-white/10"
+    dark: "bg-[#121212] text-[#FAF9F6] border border-white/10 hover:border-[#C5A059]",
+    light: "bg-white text-[#121212] hover:bg-[#FAF9F6]"
   };
 
   return (
     <motion.button 
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-      className={`px-10 py-5 text-[10px] uppercase tracking-[0.3em] font-bold transition-all duration-500 overflow-hidden group relative ${variants[variant]} ${className}`}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.97 }}
+      className={`px-12 py-6 text-[11px] uppercase tracking-[0.4em] font-bold transition-all duration-700 overflow-hidden group relative flex items-center justify-center gap-4 ${variants[variant]} ${className}`}
       {...props}
     >
-      <span className="relative z-10 flex items-center justify-center gap-3">
-        {children}
-      </span>
-      <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-700 ease-expo" />
+      <span className="relative z-10">{children}</span>
+      <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-700 ease-out" />
     </motion.button>
   );
 };
 
-// --- VIEW UTAMA (PAGES) ---
+// --- VIEW UTAMA (MODULAR PAGES) ---
 
 /**
- * VIEW: HOME
+ * PAGE: HOME (The Experience)
  */
 const HomeView = ({ onNavigate }) => {
   const heroRef = useRef(null);
   const { scrollYProgress } = useScroll({ target: heroRef });
-  const yParallax = useTransform(scrollYProgress, [0, 1], [0, 250]);
+  const yParallax = useTransform(scrollYProgress, [0, 1], [0, 300]);
 
   return (
-    <>
-      {/* Hero Section */}
-      <section ref={heroRef} className="relative h-screen flex items-center justify-center overflow-hidden bg-[#121212]">
+    <div className="overflow-hidden">
+      {/* Hero Masterpiece */}
+      <section ref={heroRef} className="relative h-screen flex items-center justify-center bg-[#121212]">
         <motion.div style={{ y: yParallax }} className="absolute inset-0 z-0 opacity-40">
           <img 
-            src="https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&q=80&w=2000" 
+            src="https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&q=80&w=2500" 
             className="w-full h-full object-cover grayscale" 
-            alt="Bakerman Hero" 
+            alt="Bakerman Artisanal Hero" 
+            onError={(e) => { e.target.src = "https://placehold.co/1920x1080/121212/C5A059?text=Artisanal+Soul"; }}
           />
         </motion.div>
         
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#121212]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#121212]/80 via-transparent to-[#121212]" />
 
-        <div className="relative z-10 text-center px-6">
+        <div className="relative z-10 text-center px-6 max-w-7xl">
           <motion.div
-            initial={{ opacity: 0, y: 60 }}
+            initial={{ opacity: 0, y: 80 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.2, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
           >
-            <span className="text-[#C5A059] uppercase tracking-[0.8em] text-xs font-bold mb-10 block">
-              American Artisanal • Urban Jakarta Soul
-            </span>
-            <h1 className="text-7xl md:text-[160px] font-serif text-[#FAF9F6] leading-[0.8] tracking-tighter mb-12">
-              Artisan Bakes,<br />
+            <motion.span 
+              initial={{ opacity: 0, tracking: '0.2em' }}
+              animate={{ opacity: 1, tracking: '0.8em' }}
+              transition={{ duration: 2, delay: 0.5 }}
+              className="text-[#C5A059] uppercase text-xs font-bold mb-12 block"
+            >
+              Artisanal American Bakery • Jakarta Soul
+            </motion.span>
+            <h1 className="text-7xl md:text-[14vw] font-serif text-[#FAF9F6] leading-[0.75] tracking-tighter mb-16">
+              Handcrafted<br />
               <motion.span 
-                initial={{ opacity: 0, x: -40 }}
+                initial={{ opacity: 0, x: -60 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 1.5, delay: 1 }}
+                transition={{ duration: 1.8, delay: 0.8 }}
                 className="italic text-[#C5A059]"
-              >Urban Soul.</motion.span>
+              >Patience.</motion.span>
             </h1>
-            <p className="text-lg md:text-xl text-white/50 max-w-2xl mx-auto mb-16 font-light leading-relaxed">
-              Merging traditional 72-hour fermentation with the bold pulse of the city. Handcrafted daily in Jakarta.
+            <p className="text-xl md:text-2xl text-white/50 max-w-3xl mx-auto mb-20 font-light leading-relaxed">
+              Experience the meticulous 72-hour fermentation that defines our signature croissants. 
+              Jakarta's urban heart meets traditional American craftsmanship.
             </p>
-            <div className="flex flex-col sm:flex-row gap-8 justify-center items-center">
-              <PremiumButton onClick={() => onNavigate('menu')}>Explore Menu <ChevronRight size={16} /></PremiumButton>
-              <PremiumButton variant="outline" onClick={() => onNavigate('story')}>Our Story</PremiumButton>
+            <div className="flex flex-col sm:flex-row gap-10 justify-center items-center">
+              <PremiumButton onClick={() => onNavigate('menu')}>Discover the Menu <ArrowRight size={18} /></PremiumButton>
+              <button 
+                onClick={() => onNavigate('story')}
+                className="text-[11px] uppercase tracking-[0.5em] font-bold text-[#FAF9F6] hover:text-[#C5A059] transition-all py-6"
+              >
+                The Bakerman Story
+              </button>
             </div>
           </motion.div>
         </div>
 
         <motion.div 
-          animate={{ y: [0, 15, 0] }} 
-          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 text-[#C5A059]"
+          animate={{ y: [0, 20, 0], opacity: [0.4, 1, 0.4] }} 
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute bottom-16 left-1/2 -translate-x-1/2 flex flex-col items-center gap-6 text-[#C5A059]"
         >
-          <div className="w-[1px] h-24 bg-gradient-to-b from-[#C5A059] to-transparent" />
-          <span className="text-[9px] uppercase tracking-[0.4em] font-bold">Scroll Down</span>
+          <div className="w-[1px] h-32 bg-gradient-to-b from-[#C5A059] to-transparent" />
+          <span className="text-[10px] uppercase tracking-[0.6em] font-bold">Scroll to Explore</span>
         </motion.div>
       </section>
 
-      {/* Philosophy Brief */}
-      <section className="py-40 px-6 bg-[#FAF9F6]">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-32 items-center">
-          <div className="relative">
+      {/* The Craft (Story Section) */}
+      <section className="py-56 px-6 bg-[#FAF9F6]">
+        <div className="max-w-[1400px] mx-auto grid lg:grid-cols-12 gap-24 items-center">
+          <div className="lg:col-span-5 relative">
             <motion.div 
               initial="hidden" whileInView="visible" viewport={{ once: true }}
               variants={REVEAL_BOX}
               className="absolute inset-0 bg-[#C5A059] z-10 origin-left"
             />
-            <img 
-              src="https://images.unsplash.com/photo-1544333303-5775ad11977a?auto=format&fit=crop&q=80&w=1200" 
-              className="w-full aspect-[4/5] object-cover grayscale brightness-75 scale-105" 
-              alt="Craft" 
-            />
+            <div className="relative overflow-hidden aspect-[4/5] shadow-2xl">
+              <img 
+                src="https://images.unsplash.com/photo-1544333303-5775ad11977a?auto=format&fit=crop&q=80&w=1500" 
+                className="w-full h-full object-cover grayscale brightness-90 hover:grayscale-0 hover:scale-105 transition-all duration-[2s]" 
+                alt="Bread Crafting" 
+              />
+            </div>
+            <div className="absolute -bottom-16 -right-16 w-80 h-80 bg-[#121212] p-16 flex flex-col justify-center shadow-[40px_40px_80px_rgba(0,0,0,0.1)] z-20">
+              <h4 className="text-[#C5A059] font-serif text-6xl mb-4 italic leading-none">72h</h4>
+              <p className="text-white/40 text-[10px] uppercase tracking-[0.4em] font-bold leading-loose">
+                Cold-fermentation process for complex aromatic profiles.
+              </p>
+            </div>
           </div>
-          <div>
-            <SectionHeading title="Meticulous by Design." subtitle="The Craft" align="left" />
-            <p className="text-2xl font-light leading-relaxed text-[#121212]/70 mb-12">
-              At Bakerman, we don't believe in shortcuts. Every loaf and pastry is a labor of 72 hours—patience is our master baker.
-            </p>
-            <div className="grid grid-cols-2 gap-10">
-              <div className="space-y-4">
-                <ChefHat className="text-[#C5A059]" size={32} />
-                <h4 className="text-xl font-serif">Master Baker</h4>
-                <p className="text-sm text-black/50">Guided by artisans with decades of American bakery heritage.</p>
+          
+          <div className="lg:col-span-7 lg:pl-20">
+            <SectionHeading title="Patience is our Ingredient." subtitle="The Craftsmanship" align="left" />
+            <div className="space-y-12">
+              <p className="text-2xl font-light leading-relaxed text-[#121212]/80">
+                At Bakerman, we don't believe in the fast-paced rush. We believe in the marriage of time and technique. Every pastry is a labor of love, requiring 72 hours of care before it meets the oven.
+              </p>
+              
+              <div className="grid md:grid-cols-2 gap-12 pt-10">
+                <div className="space-y-6 group">
+                  <div className="w-16 h-16 bg-[#C5A059]/10 flex items-center justify-center text-[#C5A059] rounded-full group-hover:bg-[#C5A059] group-hover:text-white transition-all duration-500">
+                    <ChefHat size={32} />
+                  </div>
+                  <h4 className="text-2xl font-serif">Artisanal Mastery</h4>
+                  <p className="text-sm text-black/50 leading-relaxed font-light">Guided by world-class techniques, our bakers treat every dough as a living masterpiece.</p>
+                </div>
+                <div className="space-y-6 group">
+                  <div className="w-16 h-16 bg-[#C5A059]/10 flex items-center justify-center text-[#C5A059] rounded-full group-hover:bg-[#C5A059] group-hover:text-white transition-all duration-500">
+                    <Sparkles size={32} />
+                  </div>
+                  <h4 className="text-2xl font-serif">AOP Butter Grade</h4>
+                  <p className="text-sm text-black/50 leading-relaxed font-light">Exclusively using the finest French AOP butter for that unparalleled golden flakiness.</p>
+                </div>
               </div>
-              <div className="space-y-4">
-                <Sparkles className="text-[#C5A059]" size={32} />
-                <h4 className="text-xl font-serif">AOP Butter</h4>
-                <p className="text-sm text-black/50">Exclusively using French butter for that distinct nutty aroma.</p>
+              
+              <div className="pt-10">
+                <PremiumButton variant="outline" onClick={() => onNavigate('story')}>Read Our Full History</PremiumButton>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Marquee Effect */}
-      <div className="bg-[#121212] py-8 border-y border-white/5 overflow-hidden whitespace-nowrap">
+      {/* Marquee Cinematic Banner */}
+      <div className="bg-[#121212] py-12 border-y border-white/5 overflow-hidden whitespace-nowrap">
         <motion.div 
-          animate={{ x: [0, -2000] }} 
-          transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-          className="flex gap-20 items-center"
+          animate={{ x: [0, -2500] }} 
+          transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
+          className="flex gap-24 items-center"
         >
-          {[...Array(10)].map((_, i) => (
+          {[...Array(12)].map((_, i) => (
             <React.Fragment key={i}>
-              <span className="text-[#FAF9F6]/20 font-serif text-5xl uppercase italic tracking-widest">Freshly Baked Every Morning</span>
-              <div className="w-3 h-3 bg-[#C5A059] rounded-full" />
-              <span className="text-[#FAF9F6]/20 font-serif text-5xl uppercase italic tracking-widest">Artisanal Quality</span>
-              <div className="w-3 h-3 bg-[#C5A059] rounded-full" />
+              <span className="text-[#FAF9F6]/10 font-serif text-6xl uppercase italic tracking-widest">Freshly Baked Every Morning</span>
+              <div className="w-4 h-4 bg-[#C5A059] rounded-full" />
+              <span className="text-[#FAF9F6]/10 font-serif text-6xl uppercase italic tracking-widest">American Artisanal Heritage</span>
+              <div className="w-4 h-4 bg-[#C5A059] rounded-full" />
             </React.Fragment>
           ))}
         </motion.div>
       </div>
-    </>
+    </div>
   );
 };
 
 /**
- * VIEW: FULL MENU
+ * PAGE: DIGITAL MENU
  */
 const MenuView = () => {
   const [activeTab, setActiveTab] = useState('pastries');
 
+  const categories = [
+    { id: 'pastries', label: 'Artisan Pastries', icon: <Croissant size={20} /> },
+    { id: 'dining', label: 'All-Day Dining', icon: <Utensils size={20} /> },
+    { id: 'beverages', label: 'Coffee & Brews', icon: <CoffeeIcon size={20} /> }
+  ];
+
   return (
-    <section className="pt-40 pb-40 px-6 bg-[#121212] min-h-screen">
-      <div className="max-w-[1400px] mx-auto">
-        <SectionHeading title="The Digital Collection." subtitle="Artisan Menu" light={true} />
+    <section className="pt-56 pb-56 px-6 bg-[#121212] min-h-screen">
+      <div className="max-w-[1500px] mx-auto">
+        <SectionHeading title="The Curated Collection." subtitle="Digital Menu" light={true} />
         
-        {/* Tab Switcher */}
-        <div className="flex flex-wrap justify-center gap-4 md:gap-12 mb-24">
-          {Object.keys(MENU_DATA).map(cat => (
+        {/* Advanced Tab Navigation */}
+        <div className="flex flex-wrap justify-center gap-6 md:gap-16 mb-32">
+          {categories.map(cat => (
             <button 
-              key={cat}
-              onClick={() => setActiveTab(cat)}
-              className={`px-10 py-4 text-[10px] uppercase tracking-[0.5em] font-bold border rounded-full transition-all duration-500 ${
-                activeTab === cat ? 'bg-[#C5A059] border-[#C5A059] text-white shadow-2xl' : 'bg-transparent border-white/10 text-white/30 hover:border-white/40'
+              key={cat.id}
+              onClick={() => setActiveTab(cat.id)}
+              className={`flex items-center gap-4 px-12 py-6 text-[11px] uppercase tracking-[0.6em] font-bold border rounded-full transition-all duration-700 ${
+                activeTab === cat.id ? 'bg-[#C5A059] border-[#C5A059] text-white shadow-[0_20px_50px_rgba(197,160,89,0.3)]' : 'bg-transparent border-white/10 text-white/30 hover:border-white/30'
               }`}
             >
-              {cat}
+              {cat.icon}
+              {cat.label}
             </button>
           ))}
         </div>
@@ -436,132 +484,66 @@ const MenuView = () => {
           layout
           key={activeTab}
           initial="hidden" animate="visible" variants={STAGGER_CONTAINER}
-          className="grid md:grid-cols-2 lg:grid-cols-4 gap-8"
+          className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-12"
         >
           <AnimatePresence mode="popLayout">
-            {MENU_DATA[activeTab].map((item) => (
+            {DETAILED_MENU[activeTab].map((item, idx) => (
               <motion.div 
                 layout
                 key={item.id}
+                custom={idx}
                 variants={FADE_IN_UP}
-                className="group relative bg-[#FAF9F6] border border-black/5 overflow-hidden flex flex-col h-full shadow-lg"
+                className="group relative bg-[#1e1e1e] border border-white/5 overflow-hidden flex flex-col h-full hover:border-[#C5A059]/50 transition-all duration-700"
               >
-                <div className="relative aspect-square overflow-hidden bg-gray-200">
+                <div className="relative aspect-[4/5] overflow-hidden bg-[#121212]">
                   <motion.img 
-                    whileHover={{ scale: 1.15 }}
-                    transition={{ duration: 1.5 }}
+                    whileHover={{ scale: 1.12 }}
+                    transition={{ duration: 1.8 }}
                     src={item.img} 
-                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000" 
+                    className="w-full h-full object-cover grayscale opacity-80 group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-1000" 
                     alt={item.name} 
+                    onError={(e) => { e.target.src = `https://placehold.co/800x1000/121212/C5A059?text=${item.name}`; }}
                   />
-                  {item.tags.includes("Best Seller") && (
-                    <div className="absolute top-4 left-4 bg-[#C5A059] text-white px-3 py-1 text-[8px] font-bold tracking-widest uppercase shadow-xl">Best Seller</div>
+                  {item.tags.length > 0 && (
+                    <div className="absolute top-6 left-6 flex flex-col gap-2">
+                      {item.tags.map(tag => (
+                        <span key={tag} className="bg-[#C5A059] text-white px-4 py-1.5 text-[9px] font-bold tracking-[0.3em] uppercase shadow-2xl w-fit">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
                   )}
-                </div>
-                <div className="p-8 flex-grow flex flex-col">
-                  <div className="flex justify-between items-start mb-4">
-                    <h3 className="text-2xl font-serif text-[#121212] group-hover:text-[#C5A059] transition-colors">{item.name}</h3>
-                    <span className="text-lg font-serif text-[#C5A059]">{item.price}</span>
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <PremiumButton variant="light" className="scale-75 group-hover:scale-100">Quick Add</PremiumButton>
                   </div>
-                  <p className="text-sm text-black/50 font-light leading-relaxed mb-8 flex-grow">{item.desc}</p>
-                  <div className="pt-6 border-t border-black/5 flex justify-between items-center">
-                    <span className="text-[10px] uppercase tracking-widest text-black/30">{item.calories}</span>
-                    <button className="text-[#C5A059] hover:translate-x-2 transition-transform"><ArrowRight size={20} /></button>
+                </div>
+                
+                <div className="p-10 flex-grow flex flex-col">
+                  <div className="flex justify-between items-start mb-6">
+                    <h3 className="text-3xl font-serif text-[#FAF9F6] group-hover:text-[#C5A059] transition-colors duration-500">{item.name}</h3>
+                    <span className="text-xl font-serif text-[#C5A059] ml-4">{item.price}</span>
+                  </div>
+                  <p className="text-base text-white/40 font-light leading-relaxed mb-10 flex-grow italic">
+                    "{item.desc}"
+                  </p>
+                  <div className="pt-8 border-t border-white/5 flex justify-between items-center">
+                    <div className="flex items-center gap-3 text-white/20">
+                      <Zap size={14} className="text-[#C5A059]" />
+                      <span className="text-[10px] uppercase tracking-widest font-bold">{item.calories}</span>
+                    </div>
+                    <button className="text-[#C5A059] hover:translate-x-3 transition-transform duration-500"><ArrowRight size={24} /></button>
                   </div>
                 </div>
               </motion.div>
             ))}
           </AnimatePresence>
         </motion.div>
-      </div>
-    </section>
-  );
-};
 
-/**
- * VIEW: LOCATIONS
- */
-const LocationsView = () => {
-  const [selectedBranch, setSelectedBranch] = useState(BRANCHES[0]);
-
-  return (
-    <section className="pt-40 pb-40 px-6 bg-[#FAF9F6] min-h-screen">
-      <div className="max-w-[1600px] mx-auto">
-        <SectionHeading title="Urban Sanctuaries." subtitle="Our Locations" />
-
-        <div className="grid lg:grid-cols-12 gap-12 h-[800px]">
-          {/* Branch List */}
-          <div className="lg:col-span-4 overflow-y-auto pr-4 space-y-4 custom-scrollbar">
-            {BRANCHES.map(branch => (
-              <motion.div 
-                key={branch.id}
-                onClick={() => setSelectedBranch(branch)}
-                className={`p-10 border transition-all duration-500 cursor-pointer group ${
-                  selectedBranch.id === branch.id ? 'bg-[#121212] border-[#121212] shadow-2xl' : 'bg-white border-black/5 hover:border-[#C5A059]'
-                }`}
-              >
-                <div className="flex justify-between items-start mb-6">
-                  <MapPin className={`${selectedBranch.id === branch.id ? 'text-[#C5A059]' : 'text-black/20'} group-hover:text-[#C5A059] transition-colors`} size={24} />
-                  <div className="flex gap-2">
-                    {branch.tags.slice(0, 1).map(t => (
-                      <span key={t} className="text-[8px] uppercase tracking-widest px-2 py-1 bg-[#C5A059]/10 text-[#C5A059] font-bold">{t}</span>
-                    ))}
-                  </div>
-                </div>
-                <h3 className={`text-2xl font-serif mb-2 transition-colors ${selectedBranch.id === branch.id ? 'text-[#FAF9F6]' : 'text-[#121212]'}`}>
-                  {branch.name}
-                </h3>
-                <p className={`text-sm mb-6 font-light transition-colors ${selectedBranch.id === branch.id ? 'text-[#FAF9F6]/50' : 'text-black/50'}`}>
-                  {branch.address}
-                </p>
-                <div className={`flex items-center gap-4 text-xs font-bold transition-colors ${selectedBranch.id === branch.id ? 'text-[#C5A059]' : 'text-[#121212]/30'}`}>
-                  VIEW DETAILS <ArrowRight size={14} className="group-hover:translate-x-2 transition-transform" />
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Interactive Detail & Map */}
-          <div className="lg:col-span-8 bg-white border border-black/5 overflow-hidden flex flex-col">
-            <div className="flex-grow relative bg-gray-100">
-              <iframe 
-                src={selectedBranch.mapIframe}
-                className="absolute inset-0 w-full h-full border-0 grayscale invert contrast-125 opacity-80"
-                allowFullScreen="" 
-                loading="lazy" 
-              />
-              <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_100px_rgba(0,0,0,0.1)]" />
-            </div>
-            
-            <div className="p-12 bg-[#121212] text-[#FAF9F6] grid md:grid-cols-2 gap-12">
-              <div>
-                <h4 className="text-[#C5A059] uppercase tracking-widest text-[10px] font-bold mb-6">Branch Information</h4>
-                <div className="space-y-6">
-                  <div className="flex items-center gap-4">
-                    <Clock size={20} className="text-[#C5A059]" />
-                    <div>
-                      <p className="text-[10px] uppercase tracking-widest text-white/30">Hours of Operation</p>
-                      <p className="text-lg font-serif">{selectedBranch.hours}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <Phone size={20} className="text-[#C5A059]" />
-                    <div>
-                      <p className="text-[10px] uppercase tracking-widest text-white/30">Direct Contact</p>
-                      <p className="text-lg font-serif">{selectedBranch.phone}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="flex flex-col justify-end gap-6">
-                <div className="flex flex-wrap gap-2">
-                  {selectedBranch.tags.map(tag => (
-                    <span key={tag} className="text-[8px] uppercase tracking-[0.3em] px-3 py-1 border border-white/10 text-white/40">{tag}</span>
-                  ))}
-                </div>
-                <PremiumButton className="w-full">Open in Google Maps <ExternalLink size={16} /></PremiumButton>
-              </div>
-            </div>
+        <div className="mt-40 text-center">
+          <p className="text-white/20 text-sm italic mb-12">*Prices are in IDR (thousands) and exclude Government Tax & Service Charge.</p>
+          <div className="flex flex-wrap justify-center gap-8">
+            <PremiumButton variant="outline">View Full Beverage List (PDF)</PremiumButton>
+            <PremiumButton variant="outline">Pastry Box Customization</PremiumButton>
           </div>
         </div>
       </div>
@@ -570,58 +552,139 @@ const LocationsView = () => {
 };
 
 /**
- * VIEW: OUR STORY
+ * PAGE: LOCATIONS & INTERACTIVE MAP
  */
-const StoryView = () => {
-  return (
-    <section className="pt-40 pb-40 px-6 bg-[#121212] min-h-screen">
-      <div className="max-w-5xl mx-auto">
-        <SectionHeading title="The Artisanal Soul." subtitle="Our Story" light={true} />
-        
-        <div className="space-y-32">
-          {/* Chapter 1 */}
-          <motion.div 
-            initial="hidden" whileInView="visible" viewport={{ once: true }} variants={FADE_IN_UP}
-            className="grid md:grid-cols-2 gap-20 items-center"
-          >
-            <div>
-              <span className="text-[#C5A059] font-serif text-5xl mb-8 block italic">Chapter I</span>
-              <h3 className="text-4xl font-serif text-[#FAF9F6] mb-8 tracking-tighter">Jakarta Roots,<br />American Spirit.</h3>
-              <p className="text-white/50 leading-relaxed font-light mb-8">
-                Bakerman was born in 2020 from a shared passion for the craft of the artisan baker. In the middle of Jakarta's fast-paced urban life, we wanted to build a sanctuary where time slows down—where the bread is slow-fermented and the coffee is meticulously roasted.
-              </p>
-            </div>
-            <div className="relative aspect-square bg-[#FAF9F6]/5 overflow-hidden">
-               <img src="https://images.unsplash.com/photo-1555507036-ab1f4038808a" className="w-full h-full object-cover grayscale opacity-60" alt="Sourdough" />
-            </div>
-          </motion.div>
+const LocationsView = () => {
+  const [selectedBranch, setSelectedBranch] = useState(BRANCH_LOCATIONS[0]);
+  const [regionFilter, setRegionFilter] = useState('All');
 
-          {/* Chapter 2 */}
-          <motion.div 
-            initial="hidden" whileInView="visible" viewport={{ once: true }} variants={FADE_IN_UP}
-            className="grid md:grid-cols-2 gap-20 items-center"
-          >
-            <div className="order-2 md:order-1 relative aspect-square bg-[#FAF9F6]/5 overflow-hidden">
-              <img src="https://images.unsplash.com/photo-1544333303-5775ad11977a" className="w-full h-full object-cover grayscale opacity-60" alt="Process" />
-            </div>
-            <div className="order-1 md:order-2">
-              <span className="text-[#C5A059] font-serif text-5xl mb-8 block italic">Chapter II</span>
-              <h3 className="text-4xl font-serif text-[#FAF9F6] mb-8 tracking-tighter">The 72-Hour Secret.</h3>
-              <p className="text-white/50 leading-relaxed font-light mb-8">
-                Our dough isn't just mixed; it's nurtured. Using a cold-fermentation process that spans 72 hours, we develop flavor profiles that are deep, complex, and distinct. It's a commitment to the craft that defines every croissant and sourdough loaf we bake.
-              </p>
-              <div className="flex gap-12">
-                <div>
-                  <h4 className="text-3xl text-[#C5A059] font-serif mb-1">81</h4>
-                  <p className="text-[10px] uppercase tracking-widest text-white/30">Layers of Lamination</p>
+  const filteredBranches = useMemo(() => {
+    if (regionFilter === 'All') return BRANCH_LOCATIONS;
+    return BRANCH_LOCATIONS.filter(b => b.region === regionFilter);
+  }, [regionFilter]);
+
+  return (
+    <section className="pt-56 pb-56 px-6 bg-[#FAF9F6] min-h-screen">
+      <div className="max-w-[1700px] mx-auto">
+        <SectionHeading title="Our Urban Sanctuaries." subtitle="Store Locator" />
+
+        {/* Region Filter */}
+        <div className="flex justify-center flex-wrap gap-4 mb-24">
+          {['All', 'Jakarta Selatan', 'Jakarta Pusat', 'Jakarta Utara'].map(reg => (
+            <button 
+              key={reg}
+              onClick={() => setRegionFilter(reg)}
+              className={`px-10 py-3 rounded-full text-[10px] uppercase tracking-widest font-bold border transition-all duration-700 ${
+                regionFilter === reg ? 'bg-[#121212] text-white border-[#121212]' : 'bg-transparent text-[#121212]/40 border-black/5 hover:border-[#C5A059]'
+              }`}
+            >
+              {reg}
+            </button>
+          ))}
+        </div>
+
+        <div className="grid lg:grid-cols-12 gap-16 h-[850px]">
+          {/* Branch List (Master) */}
+          <div className="lg:col-span-4 overflow-y-auto pr-6 space-y-6 custom-scrollbar">
+            {filteredBranches.map(branch => (
+              <motion.div 
+                key={branch.id}
+                layout
+                onClick={() => setSelectedBranch(branch)}
+                className={`p-12 border transition-all duration-700 cursor-pointer group relative ${
+                  selectedBranch.id === branch.id ? 'bg-[#121212] border-[#121212] shadow-2xl scale-[1.02]' : 'bg-white border-black/5 hover:border-[#C5A059]'
+                }`}
+              >
+                {selectedBranch.id === branch.id && (
+                  <motion.div layoutId="branchIndicator" className="absolute left-0 top-0 bottom-0 w-2 bg-[#C5A059]" />
+                )}
+                
+                <div className="flex justify-between items-start mb-8">
+                  <MapPin className={`${selectedBranch.id === branch.id ? 'text-[#C5A059]' : 'text-black/10'} group-hover:text-[#C5A059] transition-colors`} size={32} />
+                  <div className="flex gap-3">
+                    {branch.tags.slice(0, 1).map(t => (
+                      <span key={t} className="text-[9px] uppercase tracking-widest px-3 py-1 bg-[#C5A059]/10 text-[#C5A059] font-bold">{t}</span>
+                    ))}
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-3xl text-[#C5A059] font-serif mb-1">AOP</h4>
-                  <p className="text-[10px] uppercase tracking-widest text-white/30">French Butter Grade</p>
+                
+                <h3 className={`text-3xl font-serif mb-4 transition-colors ${selectedBranch.id === branch.id ? 'text-[#FAF9F6]' : 'text-[#121212]'}`}>
+                  {branch.name}
+                </h3>
+                <p className={`text-base mb-8 font-light leading-relaxed transition-colors ${selectedBranch.id === branch.id ? 'text-[#FAF9F6]/50' : 'text-black/50'}`}>
+                  {branch.address}
+                </p>
+                <div className={`flex items-center gap-4 text-xs font-bold tracking-[0.3em] uppercase transition-colors ${selectedBranch.id === branch.id ? 'text-[#C5A059]' : 'text-[#121212]/20'}`}>
+                  Explore Detail <ArrowRight size={16} className="group-hover:translate-x-4 transition-transform" />
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Map & Detail (Detail) */}
+          <div className="lg:col-span-8 bg-white border border-black/5 overflow-hidden flex flex-col shadow-2xl relative">
+            <AnimatePresence mode="wait">
+              <motion.div 
+                key={selectedBranch.id}
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 1 }} 
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.8 }}
+                className="flex-grow relative bg-[#f1f1f1]"
+              >
+                <iframe 
+                  src={selectedBranch.mapIframe}
+                  className="absolute inset-0 w-full h-full border-0 grayscale contrast-125 opacity-70"
+                  allowFullScreen="" 
+                  loading="lazy" 
+                  title={selectedBranch.name}
+                />
+                <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_150px_rgba(0,0,0,0.1)]" />
+              </motion.div>
+            </AnimatePresence>
+            
+            <div className="p-16 bg-[#121212] text-[#FAF9F6] grid md:grid-cols-2 gap-16 relative">
+              <div className="space-y-10">
+                <h4 className="text-[#C5A059] uppercase tracking-[0.5em] text-[11px] font-bold">Store Details</h4>
+                <div className="grid gap-10">
+                  <div className="flex items-center gap-6 group">
+                    <div className="p-4 bg-white/5 rounded-full text-[#C5A059] group-hover:bg-[#C5A059] group-hover:text-white transition-colors duration-500">
+                      <Clock size={24} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase tracking-widest text-white/30 mb-1">Operating Hours</p>
+                      <p className="text-xl font-serif">{selectedBranch.hours}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-6 group">
+                    <div className="p-4 bg-white/5 rounded-full text-[#C5A059] group-hover:bg-[#C5A059] group-hover:text-white transition-colors duration-500">
+                      <Phone size={24} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase tracking-widest text-white/30 mb-1">Concierge Phone</p>
+                      <p className="text-xl font-serif">{selectedBranch.phone}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
+              
+              <div className="flex flex-col justify-between">
+                <div>
+                  <h4 className="text-[#C5A059] uppercase tracking-[0.5em] text-[11px] font-bold mb-8">Branch Features</h4>
+                  <div className="flex flex-wrap gap-3 mb-10">
+                    <span className="px-4 py-2 border border-white/10 text-white/40 text-[10px] uppercase tracking-widest font-bold">{selectedBranch.capacity}</span>
+                    <span className="px-4 py-2 border border-white/10 text-white/40 text-[10px] uppercase tracking-widest font-bold">{selectedBranch.vibe}</span>
+                    {selectedBranch.tags.map(tag => (
+                      <span key={tag} className="px-4 py-2 border border-[#C5A059]/30 text-[#C5A059] text-[10px] uppercase tracking-widest font-bold">{tag}</span>
+                    ))}
+                  </div>
+                </div>
+                <PremiumButton className="w-full">
+                  Get Navigation Directions <Navigation size={18} />
+                </PremiumButton>
+              </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>
@@ -636,13 +699,15 @@ export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Efek scroll untuk header
+  // Optimasi Kontras Header
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 80);
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 100);
+    };
     window.addEventListener('scroll', handleScroll);
     
-    // Simulasi loading mewah
-    const timer = setTimeout(() => setIsLoading(false), 2500);
+    // Simulasi loading mewah dengan progres
+    const timer = setTimeout(() => setIsLoading(false), 2800);
     
     return () => {
       window.removeEventListener('scroll', handleScroll);
@@ -650,7 +715,7 @@ export default function App() {
     };
   }, []);
 
-  // Scroll ke atas setiap ganti halaman
+  // Smooth Scroll ke atas saat ganti halaman
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [currentPage]);
@@ -660,198 +725,275 @@ export default function App() {
     setIsMenuOpen(false);
   };
 
+  // Navigasi Link Array
+  const navLinks = [
+    { id: 'home', label: 'Experience' },
+    { id: 'story', label: 'The Craft' },
+    { id: 'menu', label: 'The Menu' },
+    { id: 'locations', label: 'Our Stores' }
+  ];
+
   if (isLoading) {
     return (
       <div className="fixed inset-0 z-[10000] bg-[#121212] flex flex-col items-center justify-center">
         <motion.div 
-          initial={{ opacity: 0, scale: 0.8 }}
+          initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           className="text-center"
         >
-          <div className="text-7xl font-serif text-[#FAF9F6] mb-6">B<span className="text-[#C5A059]">.</span></div>
-          <div className="w-48 h-[1px] bg-white/10 relative overflow-hidden mx-auto">
+          <div className="text-8xl font-serif text-[#FAF9F6] mb-12 flex items-center gap-4">
+            B<motion.span 
+              animate={{ opacity: [0, 1, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+              className="text-[#C5A059]"
+            >.</motion.span>
+          </div>
+          <div className="w-64 h-[2px] bg-white/5 relative overflow-hidden mx-auto">
             <motion.div 
               initial={{ x: "-100%" }}
               animate={{ x: "100%" }}
-              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-              className="absolute inset-0 bg-[#C5A059] w-1/2"
+              transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
+              className="absolute inset-0 bg-[#C5A059] w-2/3"
             />
           </div>
-          <p className="mt-6 text-[10px] uppercase tracking-[0.8em] text-white/30">Bakerman Artisanal</p>
+          <p className="mt-12 text-[11px] uppercase tracking-[1em] text-white/30 font-bold">Artisanal Patience</p>
         </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="relative selection:bg-[#C5A059] selection:text-white">
-      <NoiseEffect />
+    <div className="relative selection:bg-[#C5A059] selection:text-white bg-[#FAF9F6]">
+      <GrainyNoise />
       <CustomCursor />
 
-      {/* Dynamic Navigation */}
+      {/* --- PREMIUM DYNAMIC HEADER --- */}
       <header 
-        className={`fixed top-0 left-0 w-full z-50 transition-all duration-700 px-6 md:px-16 ${
-          isScrolled || isMenuOpen ? 'py-4 bg-[#121212]/95 backdrop-blur-md shadow-2xl' : 'py-10 bg-transparent'
+        className={`fixed top-0 left-0 w-full z-50 transition-all duration-[0.8s] px-8 md:px-20 ${
+          isScrolled || isMenuOpen ? 'py-6 bg-[#121212]/95 backdrop-blur-xl shadow-2xl border-b border-white/5' : 'py-12 bg-transparent'
         }`}
       >
-        <div className="max-w-[1800px] mx-auto flex justify-between items-center">
+        <div className="max-w-[1900px] mx-auto flex justify-between items-center">
+          {/* Brand Logo */}
           <motion.div 
             onClick={() => handleNavigation('home')}
-            className="flex items-center gap-4 cursor-pointer group"
+            className="flex items-center gap-6 cursor-pointer group"
           >
-            <div className="w-12 h-12 bg-[#C5A059] flex items-center justify-center text-white font-serif text-3xl group-hover:scale-110 transition-transform">B</div>
-            <span className="text-2xl font-serif tracking-tighter text-[#FAF9F6] uppercase">BAKERMAN</span>
+            <div className="w-14 h-14 bg-[#C5A059] flex items-center justify-center text-white font-serif text-4xl group-hover:scale-110 transition-all duration-700 shadow-xl">B</div>
+            <div className="overflow-hidden h-10">
+              <span className={`text-3xl font-serif tracking-tighter transition-all duration-700 block ${
+                isScrolled || isMenuOpen || currentPage !== 'home' ? 'text-[#FAF9F6]' : 'text-[#FAF9F6]'
+              }`}>
+                BAKERMAN
+              </span>
+            </div>
           </motion.div>
 
-          {/* Desktop Nav */}
-          <nav className="hidden lg:flex items-center gap-12">
-            {[
-              { id: 'home', label: 'Home' },
-              { id: 'story', label: 'Our Story' },
-              { id: 'menu', label: 'Full Menu' },
-              { id: 'locations', label: 'Locations' }
-            ].map(item => (
+          {/* Desktop Navigation */}
+          <nav className="hidden lg:flex items-center gap-16">
+            {navLinks.map(link => (
               <button 
-                key={item.id}
-                onClick={() => handleNavigation(item.id)}
-                className={`text-[10px] uppercase tracking-[0.4em] font-bold transition-all relative group ${
-                  currentPage === item.id ? 'text-[#C5A059]' : 'text-white/60 hover:text-white'
+                key={link.id}
+                onClick={() => handleNavigation(link.id)}
+                className={`text-[11px] uppercase tracking-[0.5em] font-bold transition-all duration-700 relative group py-4 ${
+                  currentPage === link.id ? 'text-[#C5A059]' : 'text-white/40 hover:text-white'
                 }`}
               >
-                {item.label}
-                <span className={`absolute -bottom-1 left-0 h-[1px] bg-[#C5A059] transition-all duration-500 ${
-                  currentPage === item.id ? 'w-full' : 'w-0 group-hover:w-full'
-                }`} />
+                {link.label}
+                <motion.span 
+                  className={`absolute -bottom-1 left-0 h-[2px] bg-[#C5A059] transition-all duration-700 ${
+                    currentPage === link.id ? 'w-full' : 'w-0 group-hover:w-full'
+                  }`} 
+                />
               </button>
             ))}
-            <PremiumButton className="px-6 py-2.5 bg-white text-[#121212] border-none text-[8px]">Order Now</PremiumButton>
+            <PremiumButton 
+              className="px-10 py-4 bg-[#FAF9F6] text-[#121212] border-none text-[9px] hover:bg-[#C5A059] hover:text-white transition-all"
+              onClick={() => handleNavigation('menu')}
+            >
+              Order Online
+            </PremiumButton>
           </nav>
 
-          {/* Mobile Toggle */}
-          <button className="lg:hidden text-[#FAF9F6] p-2" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-            {isMenuOpen ? <X size={32} /> : <MenuIcon size={32} />}
+          {/* Mobile Navigation Toggle */}
+          <button 
+            className={`lg:hidden p-4 rounded-full transition-all duration-700 ${isScrolled ? 'text-white' : 'text-white'}`} 
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            {isMenuOpen ? <X size={36} /> : <MenuIcon size={36} />}
           </button>
         </div>
 
-        {/* Mobile Fullscreen Menu */}
+        {/* Fullscreen Mobile Menu Drawer */}
         <AnimatePresence>
           {isMenuOpen && (
             <motion.div 
-              initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed inset-0 top-[72px] bg-[#121212] z-[40] lg:hidden flex flex-col p-12 gap-8 overflow-y-auto"
+              initial={{ opacity: 0, x: "100%" }} 
+              animate={{ opacity: 1, x: 0 }} 
+              exit={{ opacity: 0, x: "100%" }}
+              transition={{ type: 'spring', damping: 30, stiffness: 200 }}
+              className="fixed inset-0 top-[88px] bg-[#121212] z-[40] lg:hidden flex flex-col p-16 gap-12 overflow-y-auto"
             >
-              {[
-                { id: 'home', label: 'Home' },
-                { id: 'story', label: 'Our Story' },
-                { id: 'menu', label: 'Full Menu' },
-                { id: 'locations', label: 'Locations' }
-              ].map((item, idx) => (
+              {navLinks.map((link, idx) => (
                 <motion.button 
-                  key={item.id}
-                  initial={{ opacity: 0, x: 20 }}
+                  key={link.id}
+                  initial={{ opacity: 0, x: 30 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: idx * 0.1 }}
-                  onClick={() => handleNavigation(item.id)}
-                  className={`text-6xl font-serif text-left ${currentPage === item.id ? 'text-[#C5A059]' : 'text-[#FAF9F6]/20 hover:text-[#FAF9F6]'}`}
+                  onClick={() => handleNavigation(link.id)}
+                  className={`text-7xl font-serif text-left tracking-tighter ${
+                    currentPage === link.id ? 'text-[#C5A059]' : 'text-white/20 hover:text-white transition-all'
+                  }`}
                 >
-                  {item.label}
+                  {link.label}
                 </motion.button>
               ))}
-              <div className="mt-auto pt-12 border-t border-white/5 space-y-6">
-                <p className="text-[#C5A059] text-xs uppercase tracking-[0.3em] font-bold">Quick Contact</p>
-                <div className="space-y-2">
-                  <p className="text-white/40 font-light">+62 21 5011 1234</p>
-                  <p className="text-white/40 font-light">info@bakerman.co.id</p>
+              <div className="mt-auto pt-16 border-t border-white/5 flex flex-col gap-10">
+                <div className="flex gap-12">
+                  <div className="space-y-4">
+                    <p className="text-[#C5A059] text-[10px] uppercase tracking-[0.4em] font-bold">Inquiries</p>
+                    <p className="text-white/40 text-lg font-light">info@bakerman.co.id</p>
+                  </div>
+                  <div className="space-y-4">
+                    <p className="text-[#C5A059] text-[10px] uppercase tracking-[0.4em] font-bold">Socials</p>
+                    <p className="text-white/40 text-lg font-light">@bakerman.id</p>
+                  </div>
                 </div>
+                <PremiumButton className="w-full">Order Online Now</PremiumButton>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </header>
 
-      {/* --- CONTENT RENDERER --- */}
+      {/* --- CONTENT ENGINE --- */}
       <main>
         <AnimatePresence mode="wait">
           <motion.div
             key={currentPage}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.8 }}
+            {...PAGE_TRANSITION}
           >
             {currentPage === 'home' && <HomeView onNavigate={handleNavigation} />}
             {currentPage === 'menu' && <MenuView />}
             {currentPage === 'locations' && <LocationsView />}
-            {currentPage === 'story' && <StoryView />}
+            {currentPage === 'story' && (
+              <div className="pt-56 pb-56 px-6 bg-[#121212] min-h-screen">
+                <div className="max-w-6xl mx-auto">
+                   <SectionHeading title="Chapter of Passion." subtitle="The Story" light />
+                   <div className="grid md:grid-cols-2 gap-32 items-center mb-56">
+                      <div className="space-y-12">
+                        <span className="text-7xl font-serif text-[#C5A059] block italic opacity-20">01</span>
+                        <h3 className="text-5xl font-serif text-[#FAF9F6] tracking-tighter">Artisan Roots.</h3>
+                        <p className="text-white/40 text-xl font-light leading-relaxed">
+                          Bakerman was founded in 2020 with a single vision: to bring the authentic American artisanal bakery culture to Jakarta's urban scene. We don't just bake; we craft emotions.
+                        </p>
+                      </div>
+                      <div className="aspect-square bg-white/5 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1555507036-ab1f4038808a" className="w-full h-full object-cover grayscale opacity-60" alt="Bakery history" />
+                      </div>
+                   </div>
+                   <div className="grid md:grid-cols-2 gap-32 items-center">
+                      <div className="order-2 md:order-1 aspect-square bg-white/5 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff" className="w-full h-full object-cover grayscale opacity-60" alt="Bakery dough" />
+                      </div>
+                      <div className="order-1 md:order-2 space-y-12">
+                        <span className="text-7xl font-serif text-[#C5A059] block italic opacity-20">02</span>
+                        <h3 className="text-5xl font-serif text-[#FAF9F6] tracking-tighter">The Science of Time.</h3>
+                        <p className="text-white/40 text-xl font-light leading-relaxed">
+                          Our cold-fermentation process lasts exactly 72 hours. This isn't a marketing choice—it's a chemical necessity to develop the deep, complex acids and airy structure that define our bread.
+                        </p>
+                        <div className="flex gap-16">
+                           <div>
+                              <p className="text-4xl text-[#C5A059] font-serif mb-2">81</p>
+                              <p className="text-[10px] uppercase tracking-widest text-white/20">Layers of Dough</p>
+                           </div>
+                           <div>
+                              <p className="text-4xl text-[#C5A059] font-serif mb-2">12k+</p>
+                              <p className="text-[10px] uppercase tracking-widest text-white/20">Daily Bakes</p>
+                           </div>
+                        </div>
+                      </div>
+                   </div>
+                </div>
+              </div>
+            )}
           </motion.div>
         </AnimatePresence>
       </main>
 
-      {/* --- SHARED SECTIONS (RENDER ON EVERY PAGE) --- */}
+      {/* --- GLOBAL SECTIONS (SHARES ACROSS PAGES) --- */}
       
-      {/* Concierge Ordering */}
-      <section className="py-40 bg-[#121212] overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-32 items-center">
+      {/* Digital Concierge Ordering */}
+      <section className="py-56 bg-[#121212] overflow-hidden border-t border-white/5">
+        <div className="max-w-[1500px] mx-auto px-6 grid lg:grid-cols-2 gap-40 items-center">
           <div>
-            <SectionHeading title="Ordering Made Easy." subtitle="Digital Concierge" light align="left" />
-            <p className="text-white/40 text-xl font-light leading-relaxed mb-16">
-              Skip the queue. Get our freshly baked artisanal creations delivered directly to your doorstep via your preferred platform.
+            <SectionHeading title="Seamless Indulgence." subtitle="The Concierge" light align="left" />
+            <p className="text-white/40 text-2xl font-light leading-relaxed mb-20 max-w-2xl">
+              Elevate your morning rituals or corporate gatherings with our artisanal collection. Available for instant delivery or bespoke catering inquiries.
             </p>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[
-                { name: "GoFood", color: "bg-[#00AA13]", icon: <ShoppingBag size={20} /> },
-                { name: "GrabFood", color: "bg-[#00B14F]", icon: <ShoppingBag size={20} /> },
-                { name: "Tokopedia", color: "bg-[#03AC0E]", icon: <Package size={20} /> },
-                { name: "Catering", color: "bg-[#25D366]", icon: <Phone size={20} /> }
+                { name: "GoFood", color: "bg-[#00AA13]", icon: <Smartphone size={24} />, desc: "Instant Delivery" },
+                { name: "GrabFood", color: "bg-[#00B14F]", icon: <Smartphone size={24} />, desc: "Fast Preferred" },
+                { name: "Tokopedia", color: "bg-[#03AC0E]", icon: <Package size={24} />, desc: "Hampers & Gift Sets" },
+                { name: "Catering", color: "bg-[#C5A059]", icon: <Phone size={24} />, desc: "Corporate & Private Events" }
               ].map(item => (
                 <motion.div 
                   key={item.name}
                   whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.05)" }}
-                  className="p-8 border border-white/5 flex items-center justify-between group cursor-pointer"
+                  className="p-10 border border-white/5 flex items-center justify-between group cursor-pointer transition-all duration-700"
                 >
-                  <span className="text-[#FAF9F6] font-serif text-xl">{item.name}</span>
-                  <div className={`${item.color} w-10 h-10 rounded-full flex items-center justify-center text-white`}>{item.icon}</div>
+                  <div className="flex flex-col gap-2">
+                    <span className="text-[#FAF9F6] font-serif text-2xl">{item.name}</span>
+                    <span className="text-[9px] uppercase tracking-widest text-white/20 font-bold">{item.desc}</span>
+                  </div>
+                  <div className={`${item.color} w-14 h-14 rounded-full flex items-center justify-center text-white shadow-xl`}>{item.icon}</div>
                 </motion.div>
               ))}
             </div>
           </div>
-          <div className="relative rounded-[4rem] overflow-hidden shadow-2xl shadow-[#C5A059]/10">
+          <div className="relative rounded-[5rem] overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.5)] group">
             <img 
-              src="https://images.unsplash.com/photo-1574362848149-11496d93a7c7" 
-              className="w-full h-full object-cover grayscale brightness-50" 
-              alt="Concierge" 
+              src="https://images.unsplash.com/photo-1574362848149-11496d93a7c7?auto=format&fit=crop&q=80&w=1500" 
+              className="w-full h-full object-cover grayscale brightness-[0.3] group-hover:grayscale-0 group-hover:brightness-50 transition-all duration-[2s]" 
+              alt="Concierge delivery" 
             />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-24 h-24 bg-[#C5A059] rounded-full flex items-center justify-center text-white animate-pulse">
-                <Play size={40} fill="currentColor" />
-              </div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-10">
+              <motion.div 
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="w-32 h-32 bg-[#C5A059] rounded-full flex items-center justify-center text-white cursor-pointer"
+              >
+                <Play size={48} fill="currentColor" className="ml-2" />
+              </motion.div>
+              <p className="text-white text-[11px] uppercase tracking-[0.8em] font-bold">Watch the Craft</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Instagram Gallery */}
-      <section className="py-40 px-6 bg-[#FAF9F6]">
-        <div className="max-w-[1800px] mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-24 gap-12">
+      {/* Urban Life Instagram Gallery */}
+      <section className="py-56 px-6 bg-[#FAF9F6] border-t border-black/5">
+        <div className="max-w-[1900px] mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-end mb-32 gap-16">
             <div className="text-left">
-              <span className="text-[#C5A059] uppercase tracking-[0.5em] text-[10px] font-bold mb-4 block">Follow the Journey</span>
-              <h2 className="text-5xl md:text-8xl font-serif">@Bakerman.id</h2>
+              <span className="text-[#C5A059] uppercase tracking-[0.6em] text-[11px] font-bold mb-6 block">Join the Culture</span>
+              <h2 className="text-6xl md:text-9xl font-serif leading-none tracking-tighter italic">@Bakerman.id</h2>
             </div>
-            <PremiumButton variant="outline" className="rounded-full">Follow Us <Instagram size={18} /></PremiumButton>
+            <PremiumButton variant="outline" className="rounded-full px-16">Follow Our Gallery <Instagram size={24} /></PremiumButton>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {[...Array(6)].map((_, i) => (
               <motion.div 
                 key={i}
-                whileHover={{ scale: 0.98 }}
-                className="aspect-square bg-[#121212] overflow-hidden group cursor-pointer"
+                whileHover={{ scale: 0.96 }}
+                className="aspect-square bg-[#121212] overflow-hidden group cursor-pointer shadow-2xl"
               >
                 <img 
-                  src={`https://images.unsplash.com/photo-${1500000000000 + (i * 1234567)}?auto=format&fit=crop&q=80&w=800`} 
-                  className="w-full h-full object-cover grayscale opacity-60 group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-1000" 
-                  alt="Insta Feed" 
+                  src={`https://images.unsplash.com/photo-${1500000000000 + (i * 12345678)}?auto=format&fit=crop&q=80&w=1000`} 
+                  className="w-full h-full object-cover grayscale opacity-50 group-hover:opacity-100 group-hover:grayscale-0 transition-all duration-[1.5s]" 
+                  alt={`Social post ${i}`} 
+                  onError={(e) => { e.target.src = "https://placehold.co/800x800/121212/C5A059?text=Bakerman+Life"; }}
                 />
               </motion.div>
             ))}
@@ -859,36 +1001,39 @@ export default function App() {
         </div>
       </section>
 
-      {/* --- FOOTER --- */}
-      <footer className="bg-[#121212] pt-40 pb-20 px-6 border-t border-white/5 relative overflow-hidden">
-        {/* Background Decorative Logo */}
-        <div className="absolute -bottom-20 -right-20 text-[25rem] font-serif text-white/[0.02] select-none pointer-events-none uppercase">Bakerman</div>
+      {/* --- MEGA FOOTER --- */}
+      <footer className="bg-[#121212] pt-56 pb-24 px-8 md:px-20 border-t border-white/5 relative overflow-hidden">
+        {/* Cinematic Watermark Background */}
+        <div className="absolute -bottom-20 -right-20 text-[28vw] font-serif text-white/[0.02] select-none pointer-events-none uppercase tracking-tighter">Bakerman</div>
 
-        <div className="max-w-[1800px] mx-auto relative z-10">
-          <div className="grid lg:grid-cols-12 gap-20 mb-40">
-            <div className="lg:col-span-5 space-y-12">
-              <div className="flex items-center gap-6">
-                <div className="w-16 h-16 bg-[#C5A059] flex items-center justify-center text-white font-serif text-4xl">B</div>
-                <span className="text-4xl font-serif text-[#FAF9F6] tracking-tighter uppercase">BAKERMAN</span>
+        <div className="max-w-[1900px] mx-auto relative z-10">
+          <div className="grid lg:grid-cols-12 gap-24 mb-56">
+            {/* Column 1: Brand Info */}
+            <div className="lg:col-span-5 space-y-16">
+              <div className="flex items-center gap-8">
+                <div className="w-20 h-20 bg-[#C5A059] flex items-center justify-center text-white font-serif text-5xl shadow-2xl">B</div>
+                <span className="text-5xl font-serif text-[#FAF9F6] tracking-tighter uppercase">BAKERMAN</span>
               </div>
-              <p className="text-2xl text-white/30 font-light leading-relaxed max-w-lg">
-                Artisanal American Bakery & Urban Cafe. Committed to the craft of long-fermentation and urban soul.
+              <p className="text-3xl text-white/30 font-light leading-relaxed max-w-xl italic">
+                Artisanal American Bakery & Urban Cafe. Defining Jakarta's morning rituals since 2020.
               </p>
-              <div className="flex gap-10">
+              <div className="flex gap-12">
                 {[Instagram, FbIcon, Twitter, Mail].map((Icon, idx) => (
-                  <a key={idx} href="#" className="text-white/20 hover:text-[#C5A059] transition-all duration-500 transform hover:-translate-y-2">
-                    <Icon size={24} />
+                  <a key={idx} href="#" className="text-white/20 hover:text-[#C5A059] transition-all duration-700 transform hover:-translate-y-4">
+                    <Icon size={32} />
                   </a>
                 ))}
               </div>
             </div>
 
+            {/* Column 2: Navigation */}
             <div className="lg:col-span-2">
-              <h5 className="text-[#C5A059] text-[10px] uppercase tracking-[0.5em] font-bold mb-12">Explore</h5>
-              <ul className="space-y-6">
-                {['Our Story', 'Full Menu', 'Locations', 'Career', 'Sustainability'].map(item => (
+              <h5 className="text-[#C5A059] text-[11px] uppercase tracking-[0.6em] font-bold mb-16 underline underline-offset-[20px] decoration-white/10">Navigation</h5>
+              <ul className="space-y-8">
+                {['The Craft', 'The Collection', 'Store Locator', 'Bakerman Career', 'Investor Relations'].map(item => (
                   <li key={item}>
-                    <button onClick={() => handleNavigation(item.toLowerCase().replace(' ', ''))} className="text-white/40 hover:text-[#FAF9F6] text-sm font-light transition-all tracking-widest uppercase">
+                    <button className="text-white/40 hover:text-[#FAF9F6] text-sm font-light transition-all tracking-widest uppercase flex items-center gap-4 group">
+                      <div className="w-4 h-[1px] bg-[#C5A059] scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
                       {item}
                     </button>
                   </li>
@@ -896,10 +1041,11 @@ export default function App() {
               </ul>
             </div>
 
+            {/* Column 3: Contact/B2B */}
             <div className="lg:col-span-2">
-              <h5 className="text-[#C5A059] text-[10px] uppercase tracking-[0.5em] font-bold mb-12">Concierge</h5>
-              <ul className="space-y-6">
-                {['Catering Inquiry', 'Gift Hampers', 'Privacy Policy', 'Store Locator', 'B2B Partners'].map(item => (
+              <h5 className="text-[#C5A059] text-[11px] uppercase tracking-[0.6em] font-bold mb-16 underline underline-offset-[20px] decoration-white/10">Support</h5>
+              <ul className="space-y-8">
+                {['Catering Concierge', 'Corporate Gifting', 'Hamper Customization', 'Sustainability', 'FAQ'].map(item => (
                   <li key={item}>
                     <a href="#" className="text-white/40 hover:text-[#FAF9F6] text-sm font-light transition-all tracking-widest uppercase">{item}</a>
                   </li>
@@ -907,27 +1053,47 @@ export default function App() {
               </ul>
             </div>
 
+            {/* Column 4: Newsletter Subscription */}
             <div className="lg:col-span-3">
-              <h5 className="text-[#C5A059] text-[10px] uppercase tracking-[0.5em] font-bold mb-12">Urban Circle</h5>
-              <p className="text-white/30 text-sm font-light mb-8">Receive exclusive invites to our seasonal drops and tasting events.</p>
+              <h5 className="text-[#C5A059] text-[11px] uppercase tracking-[0.6em] font-bold mb-16 underline underline-offset-[20px] decoration-white/10">Bakerman Circle</h5>
+              <p className="text-white/30 text-sm font-light mb-12 italic leading-relaxed">Join our inner circle for priority access to seasonal drops and artisanal tasting events.</p>
               <div className="relative">
                 <input 
                   type="email" 
                   placeholder="Email Address" 
-                  className="w-full bg-transparent border-b border-white/10 py-5 outline-none text-[#FAF9F6] focus:border-[#C5A059] transition-all text-sm font-light"
+                  className="w-full bg-transparent border-b border-white/10 py-6 outline-none text-[#FAF9F6] focus:border-[#C5A059] transition-all text-base font-light placeholder:text-white/10"
                 />
-                <button className="absolute right-0 top-1/2 -translate-y-1/2 text-[#C5A059] hover:translate-x-2 transition-transform">
-                  <ArrowRight size={24} />
+                <button className="absolute right-0 top-1/2 -translate-y-1/2 text-[#C5A059] hover:translate-x-4 transition-transform duration-700">
+                  <ArrowRight size={32} />
                 </button>
+              </div>
+              <div className="mt-12 flex items-center gap-4 text-[10px] text-white/10 uppercase tracking-widest">
+                <ShieldCheck size={16} />
+                <span>Encrypted & Private</span>
               </div>
             </div>
           </div>
 
-          <div className="pt-20 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-10 text-[10px] uppercase tracking-[0.4em] font-bold text-white/10">
-            <p>© 2026 Bakerman Artisanal Bakery. All Rights Reserved.</p>
-            <div className="flex gap-12">
-              <span>Jakarta, Indonesia</span>
-              <span>Bakerman Digital Concept by <span className="text-[#C5A059]">Lavirix Web</span></span>
+          {/* Legal Bar */}
+          <div className="pt-24 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-12 text-[10px] uppercase tracking-[0.5em] font-bold text-white/10">
+            <div className="space-y-4 text-center md:text-left">
+              <p>© 2026 Bakerman Artisanal Bakery. A Division of Urban Global Group.</p>
+              <p>Handcrafted in Jakarta, Indonesia with Soul.</p>
+            </div>
+            <div className="flex flex-col md:flex-row gap-12 items-center">
+              <div className="flex gap-12">
+                <a href="#" className="hover:text-white transition-colors">Privacy</a>
+                <a href="#" className="hover:text-white transition-colors">Terms</a>
+                <a href="#" className="hover:text-white transition-colors">Cookies</a>
+              </div>
+              <div className="w-[1px] h-12 bg-white/5 hidden md:block" />
+              <div className="text-right flex flex-col items-center md:items-end">
+                <p className="mb-2">Concept by <span className="text-[#C5A059]">Lavirix Design</span></p>
+                <div className="flex gap-3 items-center">
+                   <div className="w-3 h-3 bg-green-500/20 rounded-full animate-pulse" />
+                   <span className="text-[8px] text-white/5">System Operational</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -937,25 +1103,21 @@ export default function App() {
 }
 
 /**
- * CUSTOM STYLES (Tailwind Global Injections)
- * =========================================
- * Catatan: Beberapa scrollbar kustom dan efek kompleks didefinisikan di sini.
+ * GLOBAL CUSTOM STYLES (Tailwind Global Injection)
+ * ===============================================
  */
-const customGlobalStyles = `
+const globalStyleTag = `
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;700&display=swap');
   
   body {
     background-color: #FAF9F6;
     font-family: 'Inter', sans-serif;
     overflow-x: hidden;
+    color: #121212;
   }
 
   .font-serif {
     font-family: 'Playfair Display', serif;
-  }
-
-  .ease-expo {
-    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .custom-scrollbar::-webkit-scrollbar {
@@ -963,23 +1125,34 @@ const customGlobalStyles = `
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.05);
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
     background: #C5A059;
   }
 
+  /* Custom Transitions */
+  .ease-expo {
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Selection Color */
   ::selection {
     background-color: #C5A059;
     color: #FAF9F6;
   }
+
+  /* Iframe Grayscale Map */
+  iframe {
+    filter: grayscale(1) invert(0.05) contrast(1.2) brightness(0.9);
+  }
 `;
 
-// Menyisipkan gaya global ke head
+// Inject global styles
 if (typeof document !== 'undefined') {
-  const styleSheet = document.createElement("style");
-  styleSheet.innerText = customGlobalStyles;
-  document.head.appendChild(styleSheet);
+  const style = document.createElement("style");
+  style.innerText = globalStyleTag;
+  document.head.appendChild(style);
 }
 
